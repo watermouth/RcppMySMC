@@ -1,0 +1,2 @@
+useDynLib(RcppMySMC)
+exportPattern("^[[:alpha:]]+")
