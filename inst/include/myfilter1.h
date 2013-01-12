@@ -4,6 +4,8 @@ class cv_state
 {
 public:
     double val;
+    double x_sigma;
+    double y_sigma;
 };
 
 class cv_obs

@@ -12,12 +12,14 @@ using namespace Rcpp;
 std::vector<cv_obs> yy;
 
 double integrand_mean_x(const cv_state&, void*);
+double integrand_mean_sigma_x(const cv_state&, void*);
+double integrand_mean_sigma_y(const cv_state&, void*);
 double integrand_mean_y(const cv_state&, void*);
 double integrand_var_x(const cv_state&, void*);
 double integrand_var_y(const cv_state&, void*);
 
 // [[Rcpp::export]]
-SEXP myfilter1(unsigned long particleNum, NumericVector observation, bool useF, Function f) { 	
+SEXP myfilter1(unsigned long particleNum, NumericVector observation) { 	
 
     long lIterates;
 
@@ -36,23 +38,20 @@ SEXP myfilter1(unsigned long particleNum, NumericVector observation, bool useF, 
         Sampler.SetMoveSet(Moveset);
         Sampler.Initialise();
 
-        Rcpp::NumericVector Xm(lIterates), Xv(lIterates), Ym(lIterates), Yv(lIterates);
+        Rcpp::NumericVector Xm(lIterates), Xv(lIterates), sigma_x_m(lIterates), sigma_y_m(lIterates);
 
         for(int n=0; n < lIterates; ++n) {
             Sampler.Iterate();
-      
             Xm(n) = Sampler.Integrate(integrand_mean_x, NULL);
             Xv(n) = Sampler.Integrate(integrand_var_x, (void*)&Xm(n));
-            Ym(n) = Sampler.Integrate(integrand_mean_y, NULL);
-            Yv(n) = Sampler.Integrate(integrand_var_y, (void*)&Ym(n));
-
-            if (useF) f(Xm, Ym);
+            sigma_x_m(n) = Sampler.Integrate(integrand_mean_sigma_x, NULL);
+            sigma_y_m(n) = Sampler.Integrate(integrand_mean_sigma_y, NULL);
         }
 
         return Rcpp::DataFrame::create(Rcpp::Named("Xm") = Xm,
                                        Rcpp::Named("Xv") = Xv,
-                                       Rcpp::Named("Ym") = Ym,
-                                       Rcpp::Named("Yv") = Yv);
+                                       Rcpp::Named("sxm") = sigma_x_m,
+                                       Rcpp::Named("sym") = sigma_y_m);
     }
     catch(smc::exception  e) {
         Rcpp::Rcout << e;       	// not cerr, as R doesn't like to mix with i/o 
@@ -65,7 +64,14 @@ double integrand_mean_x(const cv_state& s, void *)
 {
   return s.val;
 }
-
+double integrand_mean_sigma_x(const cv_state& s, void *)
+{
+  return s.x_sigma;
+}
+double integrand_mean_sigma_y(const cv_state& s, void *)
+{
+  return s.y_sigma;
+}
 double integrand_var_x(const cv_state& s, void* vmx)
 {
   double* dmx = (double*)vmx;
@@ -73,30 +79,19 @@ double integrand_var_x(const cv_state& s, void* vmx)
   return d*d;
 }
 
-double integrand_mean_y(const cv_state& s, void *)
-{
-  return s.val;
-}
-
-double integrand_var_y(const cv_state& s, void* vmy)
-{
-  double* dmy = (double*)vmy;
-  double d = (s.val - (*dmy));
-  return d*d;
-}
-
-double var_s0 = 4;
-double var_u0 = 1;
+const double var_s0 = 4;
 double var_s  = 0.1;
-double var_u  = 0.1;
-
+const double var_state_x_sigma0 = 4;
+const double var_state_x_sigma = 0.5;
+double var_state_y_sigma0 = 4;
+double var_state_y_sigma = 0.5;
 ///The function corresponding to the log likelihood at specified time and position (up to normalisation)
 
 ///  \param lTime The current time (i.e. the index of the current distribution)
 ///  \param X     The state to consider 
 double logLikelihood(long lTime, const cv_state & X)
 {
-    return -0.5 * pow((yy[lTime].val - X.val),2) / var_u;
+    return -0.5 * pow((yy[lTime].val - X.val),2) / X.y_sigma;
 }
 
 ///A function to initialise particles
@@ -106,6 +101,8 @@ smc::particle<cv_state> fInitialise(smc::rng *pRng)
 {
   cv_state value;
   value.val = pRng->Normal(0,sqrt(var_s0));
+  value.x_sigma = sqrt(var_state_x_sigma0);
+  value.y_sigma = sqrt(var_state_y_sigma0);
   return smc::particle<cv_state>(value,logLikelihood(0,value));
 }
 
@@ -116,7 +113,13 @@ smc::particle<cv_state> fInitialise(smc::rng *pRng)
 ///\param pRng  A random number generator.
 void fMove(long lTime, smc::particle<cv_state > & pFrom, smc::rng *pRng)
 {
+  try{
   cv_state * cv_to = pFrom.GetValuePointer();
-  cv_to->val += pRng->Normal(0,sqrt(var_s));
+  cv_to->val += pRng->Normal(0,cv_to->x_sigma);
+  cv_to->x_sigma += pRng->Normal(0,sqrt(var_state_x_sigma));
+  cv_to->y_sigma += pRng->Normal(0,sqrt(var_state_y_sigma));
   pFrom.AddToLogWeight(logLikelihood(lTime, *cv_to));
+  } catch (smc::exception e){
+    
+  }
 }
