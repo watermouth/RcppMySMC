@@ -7,17 +7,23 @@
 
 using namespace Rcpp;
 
-SEXP myfilter1(unsigned long particleNum, NumericVector observation, bool useF, Function f);
+SEXP myfilter1(unsigned long particleNum, NumericVector observation);
+SEXP pfEdge1D(NumericVector observations, int numOfParticles, double alpha, double beta, double gamma);
+SEXP pfSimple1D(NumericVector observations, int numOfParticles, double std_x, double std_y);
 
 static bool validateExported(const std::string& sig) {
     static std::set<std::string> signatures;
     if (signatures.empty()) {
-        signatures.insert("SEXP(*myfilter1)(unsigned long,NumericVector,bool,Function)");
+        signatures.insert("SEXP(*myfilter1)(unsigned long,NumericVector)");
+        signatures.insert("SEXP(*pfEdge1D)(NumericVector,int,double,double,double)");
+        signatures.insert("SEXP(*pfSimple1D)(NumericVector,int,double,double)");
     }
     return signatures.find(sig) != signatures.end();
 }
 
 RCPP_MODULE(RcppMySMC_RcppExports) {
-    Rcpp::function("myfilter1", &myfilter1, Rcpp::List::create(Rcpp::Named("particleNum"), Rcpp::Named("observation"), Rcpp::Named("useF"), Rcpp::Named("f")));
+    Rcpp::function("myfilter1", &myfilter1, Rcpp::List::create(Rcpp::Named("particleNum"), Rcpp::Named("observation")));
+    Rcpp::function("pfEdge1D", &pfEdge1D, Rcpp::List::create(Rcpp::Named("observations"), Rcpp::Named("numOfParticles"), Rcpp::Named("alpha"), Rcpp::Named("beta"), Rcpp::Named("gamma")));
+    Rcpp::function("pfSimple1D", &pfSimple1D, Rcpp::List::create(Rcpp::Named("observations"), Rcpp::Named("numOfParticles"), Rcpp::Named("std_x"), Rcpp::Named("std_y")));
     Rcpp::function("RcppExports_validateExported", &validateExported);
 }

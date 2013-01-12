@@ -2,4 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 Rcpp::loadModule("RcppMySMC_RcppExports", 
-    what = c("myfilter1"))
+    what = c("myfilter1",
+             "pfEdge1D",
+             "pfSimple1D"))
