@@ -73,18 +73,9 @@ namespace PoissonEdge1DSelfOrg {
   double logLikelihood(long lTime, const State& x)
   {
     double ll = 0.0;
-    double logYCum=0.0;
-    if(y[int(lTime)] > 0){
-      for(unsigned int i = 1; i < y[int(lTime)]; i++){
-        logYCum += log(i);
-      }
+    if(x.lambda != 0){
+      ll += y[int(lTime)] * log(x.lambda) - x.lambda;
     }
-    if(x.lambda == 0){
-      ll -= logYCum;
-    } else {
-      ll += y[int(lTime)] * log(x.lambda) - x.lambda - logYCum;
-    }
-//    ll += 0.5 * x.alpha * (1 - x.lineField[0]) * (x.gamma * x.gamma);
     return ll;
   }
   
@@ -124,7 +115,7 @@ namespace PoissonEdge1DSelfOrg {
     // transition
     if(pRng->UniformS() < probOfNoEdge){
       to->lineField[0] = 0;
-      to->lambda = pRng->Normal(to->lambda, 2.0 / to->alpha);
+      to->lambda = pRng->Normal(to->lambda, 1.0 / sqrt(to->alpha));
     } else {
       to->lineField[0] = 1;
       to->lambda = pRng->UniformDiscrete(1, lambdaMax); // model dependent min, max values
