@@ -5,4 +5,5 @@ Rcpp::loadModule("RcppMySMC_RcppExports",
     what = c("myfilter1",
              "pfEdge1D",
              "pfEdge1DSelfOrg",
+             "pfPoissonEdge1DSelfOrg",
              "pfSimple1D"))
