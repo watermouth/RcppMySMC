@@ -85,7 +85,7 @@ namespace Edge1DSelfOrg {
   void fMove(long lTime, smc::particle<State> & pFrom, smc::rng *pRng)
   {
     State *to = pFrom.GetValuePointer();
-    int lineFieldAtPrevTime = to->lineField[1];
+    int lineFieldAtPrevTime = to->lineField[0];
     // probability of a value which lineField0 takes is proportional to exp(-beta*KronekkerDelta(lineField0 + lineField1, 2))
     double normalizationConstant, probOfNoEdge;
     if(lineFieldAtPrevTime == 0){
