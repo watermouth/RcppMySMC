@@ -6,5 +6,6 @@ Rcpp::loadModule("RcppMySMC_RcppExports",
              "pfEdge1D",
              "pfEdge1DSelfOrg",
              "pfPoissonEdge1DSelfOrg",
+             "pfPoissonEdge1DSelfOrgUsingOneStep",
              "pfPoissonEdge1DSelfOrg2",
              "pfSimple1D"))

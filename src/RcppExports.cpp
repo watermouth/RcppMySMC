@@ -11,6 +11,7 @@ SEXP myfilter1(unsigned long particleNum, NumericVector observation);
 SEXP pfEdge1D(NumericVector observations, int numOfParticles, double alpha, double beta, double gamma);
 SEXP pfEdge1DSelfOrg(NumericVector observations, int numOfParticles, double alpha0, double beta0, double gamma0);
 SEXP pfPoissonEdge1DSelfOrg(NumericVector observations, int numOfParticles, double sigma_alpha, double alpha0, double beta0, double lambda0, double lambdaMax);
+SEXP pfPoissonEdge1DSelfOrgUsingOneStep(NumericVector observations, int numOfParticles, double sigma_alpha, double alpha0, double beta0, double lambda0, double lambdaMax);
 SEXP pfPoissonEdge1DSelfOrg2(NumericVector observations, int numOfParticles, double sigma_alpha, double alpha0, double beta0, double sigma_gamma, double gamma0, double lambda0, double lambdaMax);
 SEXP pfSimple1D(NumericVector observations, int numOfParticles, double std_x, double std_y);
 
@@ -21,6 +22,7 @@ static bool validateExported(const std::string& sig) {
         signatures.insert("SEXP(*pfEdge1D)(NumericVector,int,double,double,double)");
         signatures.insert("SEXP(*pfEdge1DSelfOrg)(NumericVector,int,double,double,double)");
         signatures.insert("SEXP(*pfPoissonEdge1DSelfOrg)(NumericVector,int,double,double,double,double,double)");
+        signatures.insert("SEXP(*pfPoissonEdge1DSelfOrgUsingOneStep)(NumericVector,int,double,double,double,double,double)");
         signatures.insert("SEXP(*pfPoissonEdge1DSelfOrg2)(NumericVector,int,double,double,double,double,double,double,double)");
         signatures.insert("SEXP(*pfSimple1D)(NumericVector,int,double,double)");
     }
@@ -32,6 +34,7 @@ RCPP_MODULE(RcppMySMC_RcppExports) {
     Rcpp::function("pfEdge1D", &pfEdge1D, Rcpp::List::create(Rcpp::Named("observations"), Rcpp::Named("numOfParticles"), Rcpp::Named("alpha"), Rcpp::Named("beta"), Rcpp::Named("gamma")));
     Rcpp::function("pfEdge1DSelfOrg", &pfEdge1DSelfOrg, Rcpp::List::create(Rcpp::Named("observations"), Rcpp::Named("numOfParticles"), Rcpp::Named("alpha0"), Rcpp::Named("beta0"), Rcpp::Named("gamma0")));
     Rcpp::function("pfPoissonEdge1DSelfOrg", &pfPoissonEdge1DSelfOrg, Rcpp::List::create(Rcpp::Named("observations"), Rcpp::Named("numOfParticles"), Rcpp::Named("sigma_alpha"), Rcpp::Named("alpha0"), Rcpp::Named("beta0"), Rcpp::Named("lambda0"), Rcpp::Named("lambdaMax")));
+    Rcpp::function("pfPoissonEdge1DSelfOrgUsingOneStep", &pfPoissonEdge1DSelfOrgUsingOneStep, Rcpp::List::create(Rcpp::Named("observations"), Rcpp::Named("numOfParticles"), Rcpp::Named("sigma_alpha"), Rcpp::Named("alpha0"), Rcpp::Named("beta0"), Rcpp::Named("lambda0"), Rcpp::Named("lambdaMax")));
     Rcpp::function("pfPoissonEdge1DSelfOrg2", &pfPoissonEdge1DSelfOrg2, Rcpp::List::create(Rcpp::Named("observations"), Rcpp::Named("numOfParticles"), Rcpp::Named("sigma_alpha"), Rcpp::Named("alpha0"), Rcpp::Named("beta0"), Rcpp::Named("sigma_gamma"), Rcpp::Named("gamma0"), Rcpp::Named("lambda0"), Rcpp::Named("lambdaMax")));
     Rcpp::function("pfSimple1D", &pfSimple1D, Rcpp::List::create(Rcpp::Named("observations"), Rcpp::Named("numOfParticles"), Rcpp::Named("std_x"), Rcpp::Named("std_y")));
     Rcpp::function("RcppExports_validateExported", &validateExported);

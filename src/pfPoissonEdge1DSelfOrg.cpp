@@ -1,15 +1,19 @@
-#include "smctc.h"
 #include "pfPoissonEdge1DSelfOrg.h"
+#include "onlineFiltering.h"
 #include <Rcpp.h>
 #include <cstdlib>
 #include <cmath>
 #include <vector>
 #include <iostream>
 
+
+// [[Rcpp::interfaces(r,cpp)]]
+
 namespace PoissonEdge1DSelfOrg {
   // ssm parameters
   double alpha0, beta0, gamma0, lambda0, lambdaMax;
   double sigma_alpha;
+  extern smc::sampler<State>* p_sampler;
   ///The observations
   Rcpp::NumericVector y;
 }
@@ -23,7 +27,6 @@ SEXP pfPoissonEdge1DSelfOrg(NumericVector observations, int numOfParticles, doub
                             double lambda0, double lambdaMax)
 {
   BEGIN_RCPP
-  // initial dummy observation
   y = observations;
   long lIterates = y.size();
   PoissonEdge1DSelfOrg::sigma_alpha = sigma_alpha;
@@ -62,6 +65,36 @@ SEXP pfPoissonEdge1DSelfOrg(NumericVector observations, int numOfParticles, doub
   return Rcpp::List::create(Rcpp::_["mean"] = meanEdge, Rcpp::_["meanLambda"] = meanLambda, Rcpp::_["varLambda"] = varLambda,
                             Rcpp::_["particles"] = particleValues_lambda,
                             Rcpp::_["pw"] = particleValues_weight);
+  END_RCPP
+}
+
+// [[Rcpp::export]]
+SEXP pfPoissonEdge1DSelfOrgUsingOneStep(NumericVector observations, int numOfParticles, double sigma_alpha, double alpha0, double beta0,
+                            double lambda0, double lambdaMax)
+{
+  BEGIN_RCPP
+//  y = observations;
+//  long lIterates = y.size();
+//  PoissonEdge1DSelfOrg::sigma_alpha = sigma_alpha;
+//  PoissonEdge1DSelfOrg::alpha0 = alpha0;
+//  PoissonEdge1DSelfOrg::beta0  = beta0;
+//  PoissonEdge1DSelfOrg::lambda0 = lambda0;
+//  PoissonEdge1DSelfOrg::lambdaMax= lambdaMax;
+//  //Initialise and run the sampler
+//  smc::sampler<State> Sampler(numOfParticles, SMC_HISTORY_NONE);  
+//  smc::moveset<State> Moveset(fInitialise, fMove, NULL);
+  
+//  Sampler.SetResampleParams(SMC_RESAMPLE_MULTINOMIAL, 1.01 * numOfParticles);
+//  Sampler.SetMoveSet(Moveset);
+//  y[0] = observations[0];
+//  Sampler.Initialise();
+  initialize(observations[0], numOfParticles, sigma_alpha, alpha0, beta0, lambda0, lambdaMax);
+  vector<double> meanLambda(1);
+  meanLambda[0] = (*p_sampler).Integrate(integrand_mean_lambda, NULL);
+  for(size_t i_obs = 1; i_obs < observations.size(); ++i_obs){
+    meanLambda.push_back(onlineFiltering((*p_sampler), observations[i_obs], i_obs));
+  }
+  return Rcpp::List::create(Rcpp::_["meanLambda"] = meanLambda);
   END_RCPP
 }
 
